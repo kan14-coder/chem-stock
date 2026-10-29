@@ -1,1 +1,280 @@
-test
+<!DOCTYPE html>
+
+<html lang="th">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Chemical Stock</title>
+
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+<style>
+
+  body { font-family: sans-serif; margin: 0; padding: 16px; background: #f4f6f8; color: #222; }
+
+  .hidden { display: none; }
+
+  .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+
+  .name { font-size: 20px; font-weight: bold; }
+
+  .code { color: #888; font-size: 14px; margin-bottom: 8px; }
+
+  .qty { font-size: 28px; font-weight: bold; }
+
+  .toggle { display: flex; gap: 8px; margin-bottom: 16px; }
+
+  .toggle button { flex: 1; padding: 12px; border: 2px solid #ccc; background: #fff; border-radius: 10px; font-size: 16px; }
+
+  .toggle button.in.active  { border-color: #1e9e4a; background: #e7f7ec; color: #1e9e4a; font-weight: bold; }
+
+  .toggle button.out.active { border-color: #d9480f; background: #fff0e8; color: #d9480f; font-weight: bold; }
+
+  label { display: block; margin-bottom: 6px; }
+
+  input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 20px; border: 1px solid #ccc; border-radius: 10px; }
+
+  .user { margin: 12px 0 16px; color: #555; font-size: 14px; }
+
+  #submit { width: 100%; padding: 14px; font-size: 18px; border: 0; border-radius: 10px; background: #06c755; color: #fff; }
+
+  #submit:disabled { background: #aaa; }
+
+  #msg { text-align: center; font-size: 18px; margin-top: 24px; white-space: pre-line; }
+
+</style>
+
+</head>
+
+<body>
+
+  <div id="loading" style="text-align:center;margin-top:40px">กำลังโหลด...</div>
+
+
+  <div id="main" class="hidden">
+
+    <div class="card">
+
+      <div class="name" id="name"></div>
+
+      <div class="code" id="code"></div>
+
+      <div>คงเหลือ</div>
+
+      <div class="qty"><span id="qty"></span> <span id="unit"></span></div>
+
+      <div id="status"></div>
+
+    </div>
+
+
+    <div class="toggle">
+
+      <button class="in" id="btnIn" onclick="setType('in')">รับเข้า</button>
+
+      <button class="out active" id="btnOut" onclick="setType('out')">เบิกออก</button>
+
+    </div>
+
+
+    <label>จำนวน (<span id="unit2"></span>)</label>
+
+    <input id="amount" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+
+
+    <div class="user">ผู้ทำรายการ: <span id="user"></span></div>
+
+    <button id="submit" onclick="submitForm()">ยืนยัน</button>
+
+  </div>
+
+
+  <div id="msg"></div>
+
+
+<script>
+
+const LIFF_ID = '2012261459-EWoSIMD4';
+
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzGVChyiQvWHNw3gihvEX96LDakfV40k5DWFIDRSCS3E4jijhGN6nUOWnnVBXoP7Gop/exec';
+
+
+let code = '', type = 'out', item = null;
+
+const $ = id => document.getElementById(id);
+
+
+async function api(payload) {
+
+  payload.source = 'liff';
+
+  payload.accessToken = liff.getAccessToken();
+
+  const res = await fetch(GAS_URL, {
+
+    method: 'POST',
+
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+
+    body: JSON.stringify(payload)
+
+  });
+
+  const text = await res.text();
+
+  try {
+
+    return JSON.parse(text);
+
+  } catch (e) {
+
+    throw new Error('Apps Script ตอบกลับผิดรูปแบบ: ' + text.replace(/<[^>]*>/g, ' ').slice(0, 200));
+
+  }
+
+}
+
+
+function showError(text) {
+
+  $('loading').classList.add('hidden');
+
+  $('main').classList.add('hidden');
+
+  $('msg').textContent = '❌ ' + text;
+
+}
+
+
+function render() {
+
+  $('name').textContent = item.name;
+
+  $('code').textContent = 'รหัส: ' + item.code;
+
+  $('qty').textContent = item.qty;
+
+  $('unit').textContent = item.unit;
+
+  $('unit2').textContent = item.unit;
+
+  let s = '✅ ปกติ';
+
+  if (item.qty <= 0) s = '❌ หมด';
+
+  else if (item.min > 0 && item.qty <= item.min) s = '⚠️ ต่ำกว่าจุดต่ำสุด';
+
+  $('status').textContent = s;
+
+  $('loading').classList.add('hidden');
+
+  $('main').classList.remove('hidden');
+
+}
+
+
+function setType(t) {
+
+  type = t;
+
+  $('btnIn').classList.toggle('active', t === 'in');
+
+  $('btnOut').classList.toggle('active', t === 'out');
+
+}
+
+
+async function submitForm() {
+
+  const qty = Number($('amount').value);
+
+  if (!qty || qty <= 0) return alert('กรุณากรอกจำนวนให้ถูกต้อง');
+
+  if (type === 'out' && qty > item.qty &&
+
+      !confirm('จำนวนเบิกมากกว่ายอดคงเหลือ ต้องการบันทึกต่อหรือไม่?')) return;
+
+
+  const btn = $('submit');
+
+  btn.disabled = true;
+
+  btn.textContent = 'กำลังบันทึก...';
+
+  try {
+
+    const r = await api({ action: 'save', code, type, qty });
+
+    if (!r.ok) throw new Error(r.error);
+
+    $('main').classList.add('hidden');
+
+    $('msg').textContent =
+
+      '✅ บันทึกสำเร็จ\n' +
+
+      (type === 'in' ? 'รับเข้า ' : 'เบิกออก ') + r.item.name + ' ' + qty + ' ' + r.item.unit +
+
+      '\n📦 คงเหลือ: ' + r.item.qty + ' ' + r.item.unit;
+
+    if (liff.isInClient()) setTimeout(() => liff.closeWindow(), 2500);
+
+  } catch (e) {
+
+    alert('บันทึกไม่สำเร็จ: ' + e.message);
+
+    btn.disabled = false;
+
+    btn.textContent = 'ยืนยัน';
+
+  }
+
+}
+
+
+async function main() {
+
+  try {
+
+    await liff.init({ liffId: LIFF_ID });
+
+    if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
+
+
+    code = new URLSearchParams(location.search).get('code') || '';
+
+    if (!code) return showError('ไม่พบรหัสสารเคมีใน QR');
+
+
+    const profile = await liff.getProfile();
+
+    $('user').textContent = profile.displayName;
+
+
+    const r = await api({ action: 'get', code });
+
+    if (!r.ok) return showError(r.error);
+
+    item = r.item;
+
+    render();
+
+  } catch (e) {
+
+    showError('เกิดข้อผิดพลาด: ' + e.message);
+
+  }
+
+}
+
+main();
+
+</script>
+
+</body>
+
+</html>
