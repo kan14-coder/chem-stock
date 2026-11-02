@@ -94,7 +94,7 @@
 
 
   <div id="msg"></div>
-
+<button ...>...</button>
 
 <script>
 
@@ -235,19 +235,19 @@ async function submitForm() {
       alertHtml;
 
 
-    if (liff.isInClient()) setTimeout(() => liff.closeWindow(), 4000); // ขยายเวลาเป็น 4 วินาทีให้อ่านทัน
+   if (liff.isInClient()) {
 
-  } catch (e) {
+      $('close-btn').classList.remove('hidden'); // แสดงปุ่มปิดเมื่อเปิดในแอป LINE
 
-    alert('บันทึกไม่สำเร็จ: ' + e.message);
+    } else {
 
-    btn.disabled = false;
+      // ถ้าเปิดผ่านเว็บเบราว์เซอร์ทั่วไป จะให้ซ่อนหรือเปลี่ยนข้อความก็ได้
 
-    btn.textContent = 'ยืนยัน';
+      $('close-btn').textContent = 'ปิดหน้าเว็บนี้ได้เลย';
 
-  }
+      $('close-btn').classList.remove('hidden');
 
-}
+    }
 
 async function main() {
 
