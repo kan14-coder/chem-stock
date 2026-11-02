@@ -213,31 +213,29 @@ async function submitForm() {
 
     
 
-    // ส่วนเช็กเตือนจุดต่ำสุดและสั่งซื้อเพิ่ม
-
-    let alertText = '';
+    let alertHtml = '';
 
     if (r.item.min > 0 && r.item.qty <= r.item.min) {
 
-      alertText = '\n\n⚠️ แจ้งเตือน: สารเคมีต่ำกว่าจุดขั้นต่ำ (' + r.item.min + ' ' + r.item.unit + ') กรุณาสั่งซื้อเพิ่ม!';
+      alertHtml = '<div class="alert-box">⚠️ สารเคมีต่ำกว่าจุดขั้นต่ำ (' + r.item.min + ' ' + r.item.unit + ')<br>กรุณาสั่งซื้อเพิ่มด่วน!</div>';
 
     }
 
 
     $('main').classList.add('hidden');
 
-    $('msg').textContent =
+    $('msg').innerHTML =
 
-      '✅ บันทึกสำเร็จ\n' +
+      '✅ บันทึกสำเร็จ<br>' +
 
       (type === 'in' ? 'รับเข้า ' : 'เบิกออก ') + r.item.name + ' ' + qty + ' ' + r.item.unit +
 
-      '\n📦 คงเหลือ: ' + r.item.qty + ' ' + r.item.unit +
+      '<br>📦 คงเหลือ: ' + r.item.qty + ' ' + r.item.unit +
 
-      alertText;
+      alertHtml;
 
 
-    if (liff.isInClient()) setTimeout(() => liff.closeWindow(), 4500);
+    if (liff.isInClient()) setTimeout(() => liff.closeWindow(), 4000); // ขยายเวลาเป็น 4 วินาทีให้อ่านทัน
 
   } catch (e) {
 
