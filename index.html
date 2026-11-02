@@ -189,14 +189,13 @@ function setType(t) {
 
 
 async function submitForm() {
-
   const qty = Number($('amount').value);
-
+  let alertHtml = ''; // ประกาศตัวแปรไว้ตรงนี้ก่อนเลย ป้องกันหาไม่เจอ
+  
   if (!qty || qty <= 0) return alert('กรุณากรอกจำนวนให้ถูกต้อง');
-
   if (type === 'out' && qty > item.qty &&
-
       !confirm('จำนวนเบิกมากกว่ายอดคงเหลือ ต้องการบันทึกต่อหรือไม่?')) return;
+  // ... (โค้ดส่วนที่เหลือปล่อยไว้ตามเดิม)
 
 
   const btn = $('submit');
