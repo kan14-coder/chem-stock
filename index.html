@@ -211,6 +211,19 @@ async function submitForm() {
 
     if (!r.ok) throw new Error(r.error);
 
+    
+
+    // ส่วนเช็กเตือนจุดต่ำสุดและสั่งซื้อเพิ่ม
+
+    let alertText = '';
+
+    if (r.item.min > 0 && r.item.qty <= r.item.min) {
+
+      alertText = '\n\n⚠️ แจ้งเตือน: สารเคมีต่ำกว่าจุดขั้นต่ำ (' + r.item.min + ' ' + r.item.unit + ') กรุณาสั่งซื้อเพิ่ม!';
+
+    }
+
+
     $('main').classList.add('hidden');
 
     $('msg').textContent =
@@ -219,9 +232,12 @@ async function submitForm() {
 
       (type === 'in' ? 'รับเข้า ' : 'เบิกออก ') + r.item.name + ' ' + qty + ' ' + r.item.unit +
 
-      '\n📦 คงเหลือ: ' + r.item.qty + ' ' + r.item.unit;
+      '\n📦 คงเหลือ: ' + r.item.qty + ' ' + r.item.unit +
 
-    if (liff.isInClient()) setTimeout(() => liff.closeWindow(), 2500);
+      alertText;
+
+
+    if (liff.isInClient()) setTimeout(() => liff.closeWindow(), 3500);
 
   } catch (e) {
 
@@ -234,7 +250,6 @@ async function submitForm() {
   }
 
 }
-
 
 async function main() {
 
