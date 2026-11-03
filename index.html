@@ -45,7 +45,7 @@
   #submit:disabled { background: #aaa; }
 
   #msg { text-align: center; font-size: 18px; margin-top: 24px; white-space: pre-line; }
-  .alert-box { color: #d9381e; font-size: 22px; font-weight: bold; margin-top: 12px; }
+
 </style>
 
 </head>
@@ -95,13 +95,12 @@
 
   <div id="msg"></div>
 
-<button id="close-btn" class="hidden" onclick="liff.closeWindow()" style="width: 100%; margin-top: 20px; padding: 14px; font-size: 18px; border: 0; border-radius: 10px; background: #555; color: #fff; cursor: pointer;">ปิดหน้าต่าง</button>
 
 <script>
 
 const LIFF_ID = '2012261459-EWoSIMD4';
 
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzGVChyiQvWHNw3gihvEX96LDakfV40k5DWFIDRSCS3E4jijhGN6nUOWnnVBXoP7Gop/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbx.../exec';
 
 
 let code = '', type = 'out', item = null;
@@ -206,44 +205,23 @@ async function submitForm() {
 
   btn.textContent = 'กำลังบันทึก...';
 
-
   try {
 
     const r = await api({ action: 'save', code, type, qty });
 
     if (!r.ok) throw new Error(r.error);
 
-
-    let alertHtml = '';
-
-    if (r.item.min > 0 && r.item.qty <= r.item.min) {
-
-      alertHtml = '<div class="alert-box">⚠️ สารเคมีต่ำกว่าจุดขั้นต่ำ (' + r.item.min + ' ' + r.item.unit + ')<br>กรุณาสั่งซื้อเพิ่มด่วน!</div>';
-
-    }
-
-
     $('main').classList.add('hidden');
 
-    $('msg').innerHTML =
+    $('msg').textContent =
 
-      '✅ บันทึกสำเร็จ<br>' +
+      '✅ บันทึกสำเร็จ\n' +
 
       (type === 'in' ? 'รับเข้า ' : 'เบิกออก ') + r.item.name + ' ' + qty + ' ' + r.item.unit +
 
-      '<br>📦 คงเหลือ: ' + r.item.qty + ' ' + r.item.unit +
+      '\n📦 คงเหลือ: ' + r.item.qty + ' ' + r.item.unit;
 
-      alertHtml;
-
-
-    if (!liff.isInClient()) {
-
-      $('close-btn').textContent = 'ปิดหน้าเว็บนี้ได้เลย';
-
-    }
-
-    $('close-btn').classList.remove('hidden');
-
+    if (liff.isInClient()) setTimeout(() => liff.closeWindow(), 2500);
 
   } catch (e) {
 
@@ -256,18 +234,11 @@ async function submitForm() {
   }
 
 }
+
+
 async function main() {
 
   try {
-
-    // รอให้ LIFF โหลดเสร็จชัวร์ๆ ก่อน
-
-    if (typeof liff === 'undefined') {
-
-      throw new Error('ไม่สามารถโหลดไลบรารี LINE LIFF ได้ (โปรดตรวจสอบอินเทอร์เน็ตหรือการบล็อกสคริปต์)');
-
-    }
-
 
     await liff.init({ liffId: LIFF_ID });
 
@@ -299,3 +270,11 @@ async function main() {
   }
 
 }
+
+main();
+
+</script>
+
+</body>
+
+</html>
