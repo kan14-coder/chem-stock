@@ -94,7 +94,8 @@
 
 
   <div id="msg"></div>
-<button ...>...</button>
+
+<button id="close-btn" class="hidden" onclick="liff.closeWindow()" style="width: 100%; margin-top: 20px; padding: 14px; font-size: 18px; border: 0; border-radius: 10px; background: #555; color: #fff; cursor: pointer;">ปิดหน้าต่าง</button>
 
 <script>
 
@@ -189,13 +190,14 @@ function setType(t) {
 
 
 async function submitForm() {
+
   const qty = Number($('amount').value);
-  let alertHtml = ''; // ประกาศตัวแปรไว้ตรงนี้ก่อนเลย ป้องกันหาไม่เจอ
-  
+
   if (!qty || qty <= 0) return alert('กรุณากรอกจำนวนให้ถูกต้อง');
+
   if (type === 'out' && qty > item.qty &&
+
       !confirm('จำนวนเบิกมากกว่ายอดคงเหลือ ต้องการบันทึกต่อหรือไม่?')) return;
-  // ... (โค้ดส่วนที่เหลือปล่อยไว้ตามเดิม)
 
 
   const btn = $('submit');
@@ -204,13 +206,13 @@ async function submitForm() {
 
   btn.textContent = 'กำลังบันทึก...';
 
+
   try {
 
     const r = await api({ action: 'save', code, type, qty });
 
     if (!r.ok) throw new Error(r.error);
 
-    
 
     let alertHtml = '';
 
@@ -234,20 +236,26 @@ async function submitForm() {
       alertHtml;
 
 
-   if (liff.isInClient()) {
-
-      $('close-btn').classList.remove('hidden'); // แสดงปุ่มปิดเมื่อเปิดในแอป LINE
-
-    } else {
-
-      // ถ้าเปิดผ่านเว็บเบราว์เซอร์ทั่วไป จะให้ซ่อนหรือเปลี่ยนข้อความก็ได้
+    if (!liff.isInClient()) {
 
       $('close-btn').textContent = 'ปิดหน้าเว็บนี้ได้เลย';
 
-      $('close-btn').classList.remove('hidden');
-
     }
 
+    $('close-btn').classList.remove('hidden');
+
+
+  } catch (e) {
+
+    alert('บันทึกไม่สำเร็จ: ' + e.message);
+
+    btn.disabled = false;
+
+    btn.textContent = 'ยืนยัน';
+
+  }
+
+}
 async function main() {
 
   try {
