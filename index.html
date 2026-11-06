@@ -4,274 +4,485 @@
 
 <head>
 
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Chemical Stock</title>
+  <title>ตรวจสอบสต็อกสารเคมี</title>
 
-<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
-<style>
+  <style>
 
-  body { font-family: sans-serif; margin: 0; padding: 16px; background: #f4f6f8; color: #222; }
+    body { font-family: sans-serif; margin: 0; padding: 16px; background: #f2f4f7; color: #222; }
 
-  .hidden { display: none; }
+    .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
 
-  .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .center { text-align: center; }
 
-  .name { font-size: 20px; font-weight: bold; }
+    h2 { margin: 0 0 10px; font-size: 22px; }
 
-  .code { color: #888; font-size: 14px; margin-bottom: 8px; }
+    .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 18px; }
 
-  .qty { font-size: 28px; font-weight: bold; }
+    label { display: block; margin: 12px 0 6px; font-size: 16px; }
 
-  .toggle { display: flex; gap: 8px; margin-bottom: 16px; }
+    input { width: 100%; font-size: 24px; padding: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; }
 
-  .toggle button { flex: 1; padding: 12px; border: 2px solid #ccc; background: #fff; border-radius: 10px; font-size: 16px; }
+    .toggle { display: flex; gap: 8px; }
 
-  .toggle button.in.active  { border-color: #1e9e4a; background: #e7f7ec; color: #1e9e4a; font-weight: bold; }
+    .tbtn { flex: 1; font-size: 18px; padding: 12px; border: 2px solid #ccc; border-radius: 8px; background: #fff; color: #555; }
 
-  .toggle button.out.active { border-color: #d9480f; background: #fff0e8; color: #d9480f; font-weight: bold; }
+    .tbtn.active-in  { border-color: #06c755; background: #e8f9ef; color: #06a046; font-weight: bold; }
 
-  label { display: block; margin-bottom: 6px; }
+    .tbtn.active-out { border-color: #ff9800; background: #fff4e5; color: #e68900; font-weight: bold; }
 
-  input { width: 100%; box-sizing: border-box; padding: 12px; font-size: 20px; border: 1px solid #ccc; border-radius: 10px; }
+    .btn { display: block; width: 100%; font-size: 20px; padding: 14px; border: none; border-radius: 8px; margin-top: 10px; color: #fff; }
 
-  .user { margin: 12px 0 16px; color: #555; font-size: 14px; }
+    .btn:disabled { opacity: .5; }
 
-  #submit { width: 100%; padding: 14px; font-size: 18px; border: 0; border-radius: 10px; background: #06c755; color: #fff; }
+    .btn-save  { background: #06c755; }
 
-  #submit:disabled { background: #aaa; }
+    .btn-again { background: #1976d2; }
 
-  #msg { text-align: center; font-size: 18px; margin-top: 24px; white-space: pre-line; }
+    .btn-scan  { background: #2196f3; }
 
-</style>
+    .btn-close { background: #616161; }
+
+    .ok  { color: #06a046; font-size: 26px; font-weight: bold; margin-bottom: 8px; }
+
+    .err { color: #d32f2f; font-size: 18px; margin-top: 10px; text-align: center; }
+
+
+    /* แจ้งเตือนสต็อกต่ำ: สีแดง ตัวใหญ่ ทั้งประโยคขนาดเดียวกัน */
+
+    .low-alert {
+
+      color: #ff0000;
+
+      font-size: 32px;
+
+      font-weight: bold;
+
+      text-align: center;
+
+      line-height: 1.4;
+
+      border: 4px solid #ff0000;
+
+      border-radius: 12px;
+
+      padding: 18px;
+
+      margin-bottom: 12px;
+
+      background: #fff0f0;
+
+    }
+
+    .hidden { display: none !important; }
+
+  </style>
 
 </head>
 
 <body>
 
-  <div id="loading" style="text-align:center;margin-top:40px">กำลังโหลด...</div>
+
+  <div id="statusView" class="card center">กำลังโหลด...</div>
 
 
-  <div id="main" class="hidden">
+  <!-- หน้าทำรายการ -->
+
+  <div id="formView" class="hidden">
+
+    <div id="lowNow" class="low-alert hidden"></div>
 
     <div class="card">
 
-      <div class="name" id="name"></div>
+      <h2 id="fName"></h2>
 
-      <div class="code" id="code"></div>
+      <div class="row"><span>รหัส</span><b id="fCode"></b></div>
 
-      <div>คงเหลือ</div>
+      <div class="row"><span>คงเหลือ</span><b id="fBalance"></b></div>
 
-      <div class="qty"><span id="qty"></span> <span id="unit"></span></div>
+      <div class="row"><span>จุดต่ำสุด</span><b id="fMin"></b></div>
 
-      <div id="status"></div>
+
+      <label>ประเภทรายการ</label>
+
+      <div class="toggle">
+
+        <button id="tIn"  class="tbtn" onclick="setType('in')">รับเข้า</button>
+
+        <button id="tOut" class="tbtn" onclick="setType('out')">เบิกออก</button>
+
+      </div>
+
+
+      <label>จำนวน</label>
+
+      <input id="qty" type="number" min="0" step="any" inputmode="decimal" placeholder="ใส่จำนวน">
+
+
+      <button id="saveBtn" class="btn btn-save" onclick="save()">บันทึก</button>
+
+      <div id="formMsg" class="err"></div>
 
     </div>
-
-
-    <div class="toggle">
-
-      <button class="in" id="btnIn" onclick="setType('in')">รับเข้า</button>
-
-      <button class="out active" id="btnOut" onclick="setType('out')">เบิกออก</button>
-
-    </div>
-
-
-    <label>จำนวน (<span id="unit2"></span>)</label>
-
-    <input id="amount" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
-
-
-    <div class="user">ผู้ทำรายการ: <span id="user"></span></div>
-
-    <button id="submit" onclick="submitForm()">ยืนยัน</button>
 
   </div>
 
 
-  <div id="msg"></div>
+  <!-- หน้าผลลัพธ์หลังบันทึก -->
+
+  <div id="resultView" class="hidden">
+
+    <div id="lowAfter" class="low-alert hidden"></div>
+
+    <div class="card center">
+
+      <div class="ok">✅ บันทึกสำเร็จ</div>
+
+      <div id="rDetail" style="font-size:18px;margin-bottom:8px;"></div>
+
+      <div class="row"><span>สารเคมี</span><b id="rName"></b></div>
+
+      <div class="row"><span>คงเหลือปัจจุบัน</span><b id="rBalance"></b></div>
+
+      <div class="row"><span>จุดต่ำสุด</span><b id="rMin"></b></div>
+
+    </div>
+
+    <button class="btn btn-again" onclick="backToForm()">ทำรายการนี้อีกครั้ง</button>
+
+  </div>
+
+
+  <button class="btn btn-scan" onclick="scan()">📷 สแกน QR รายการอื่น</button>
+
+  <button class="btn btn-close" onclick="closeApp()">ปิดหน้าจอ</button>
 
 
 <script>
 
-const LIFF_ID = '2012261459-EWoSIMD4';
+  // ===== แก้ 2 บรรทัดนี้ =====
 
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzGVChyiQvWHNw3gihvEX96LDakfV40k5DWFIDRSCS3E4jijhGN6nUOWnnVBXoP7Gop/exec';
+  const LIFF_ID = "2012261459-EWoSIMD4";
+
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbzGVChyiQvWHNw3gihvEX96LDakfV40k5DWFIDRSCS3E4jijhGN6nUOWnnVBXoP7Gop/exec";
+
+  // ==========================
 
 
-let code = '', type = 'out', item = null;
-
-const $ = id => document.getElementById(id);
+  const LOW_TEXT = "⚠️ ปริมาณคงเหลือต่ำกว่าขั้นต่ำ ต้องสั่งซื้อ";
 
 
-async function api(payload) {
+  let currentCode = "";
 
-  payload.source = 'liff';
+  let currentType = "out";
 
-  payload.accessToken = liff.getAccessToken();
+  let userName = "LIFF";
 
-  const res = await fetch(GAS_URL, {
+  let busy = false;
 
-    method: 'POST',
 
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+  async function main() {
 
-    body: JSON.stringify(payload)
+    document.getElementById("lowNow").textContent = LOW_TEXT;
 
-  });
+    document.getElementById("lowAfter").textContent = LOW_TEXT;
 
-  const text = await res.text();
 
-  try {
+    if (typeof liff === "undefined") {
 
-    return JSON.parse(text);
+      showStatus("โหลด LINE SDK ไม่สำเร็จ กรุณาเปิดผ่านลิงก์ LIFF (https://liff.line.me/LIFF_ID?code=รหัส) และตรวจอินเทอร์เน็ต", true);
 
-  } catch (e) {
+      return;
 
-    throw new Error('Apps Script ตอบกลับผิดรูปแบบ: ' + text.replace(/<[^>]*>/g, ' ').slice(0, 200));
+    }
+
+    if (LIFF_ID.indexOf("ใส่") === 0 || GAS_URL.indexOf("ใส่") === 0) {
+
+      showStatus("ยังไม่ได้ใส่ LIFF_ID หรือ GAS_URL ในไฟล์ index.html", true);
+
+      return;
+
+    }
+
+
+    try {
+
+      await liff.init({ liffId: LIFF_ID });
+
+      if (!liff.isLoggedIn()) {
+
+        liff.login({ redirectUri: location.href });
+
+        return;
+
+      }
+
+      try {
+
+        const profile = await liff.getProfile();
+
+        userName = profile.displayName;
+
+      } catch (e) { /* ใช้ชื่อเริ่มต้น */ }
+
+
+      const code = new URLSearchParams(location.search).get("code");
+
+      if (code) {
+
+        loadItem(code);
+
+      } else {
+
+        showStatus("กดปุ่ม 📷 สแกน QR เพื่อเริ่มทำรายการ");
+
+      }
+
+    } catch (err) {
+
+      showStatus("เริ่มต้นไม่สำเร็จ: " + err.message, true);
+
+    }
 
   }
 
-}
 
+  async function callApi(data) {
 
-function showError(text) {
+    data.app = "stockqr";
 
-  $('loading').classList.add('hidden');
+    const res = await fetch(GAS_URL, {
 
-  $('main').classList.add('hidden');
+      method: "POST",
 
-  $('msg').textContent = '❌ ' + text;
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
 
-}
+      body: JSON.stringify(data)
 
+    });
 
-function render() {
+    const json = await res.json();
 
-  $('name').textContent = item.name;
+    if (!json.ok) throw new Error(json.error || "เกิดข้อผิดพลาด");
 
-  $('code').textContent = 'รหัส: ' + item.code;
-
-  $('qty').textContent = item.qty;
-
-  $('unit').textContent = item.unit;
-
-  $('unit2').textContent = item.unit;
-
-  let s = '✅ ปกติ';
-
-  if (item.qty <= 0) s = '❌ หมด';
-
-  else if (item.min > 0 && item.qty <= item.min) s = '⚠️ ต่ำกว่าจุดต่ำสุด';
-
-  $('status').textContent = s;
-
-  $('loading').classList.add('hidden');
-
-  $('main').classList.remove('hidden');
-
-}
-
-
-function setType(t) {
-
-  type = t;
-
-  $('btnIn').classList.toggle('active', t === 'in');
-
-  $('btnOut').classList.toggle('active', t === 'out');
-
-}
-
-
-async function submitForm() {
-
-  const qty = Number($('amount').value);
-
-  if (!qty || qty <= 0) return alert('กรุณากรอกจำนวนให้ถูกต้อง');
-
-  if (type === 'out' && qty > item.qty &&
-
-      !confirm('จำนวนเบิกมากกว่ายอดคงเหลือ ต้องการบันทึกต่อหรือไม่?')) return;
-
-
-  const btn = $('submit');
-
-  btn.disabled = true;
-
-  btn.textContent = 'กำลังบันทึก...';
-
-  try {
-
-    const r = await api({ action: 'save', code, type, qty });
-
-    if (!r.ok) throw new Error(r.error);
-
-    $('main').classList.add('hidden');
-
-    $('msg').textContent =
-
-      '✅ บันทึกสำเร็จ\n' +
-
-      (type === 'in' ? 'รับเข้า ' : 'เบิกออก ') + r.item.name + ' ' + qty + ' ' + r.item.unit +
-
-      '\n📦 คงเหลือ: ' + r.item.qty + ' ' + r.item.unit;
-
-    if (liff.isInClient()) setTimeout(() => liff.closeWindow(), 2500);
-
-  } catch (e) {
-
-    alert('บันทึกไม่สำเร็จ: ' + e.message);
-
-    btn.disabled = false;
-
-    btn.textContent = 'ยืนยัน';
+    return json;
 
   }
 
-}
 
+  async function loadItem(code) {
 
-async function main() {
+    showStatus("กำลังโหลดข้อมูล...");
 
-  try {
+    try {
 
-    await liff.init({ liffId: LIFF_ID });
+      const r = await callApi({ action: "get", code: code });
 
-    if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
+      currentCode = code;
 
+      fillForm(r.item);
 
-    code = new URLSearchParams(location.search).get('code') || '';
+      show("formView");
 
-    if (!code) return showError('ไม่พบรหัสสารเคมีใน QR');
+    } catch (err) {
 
+      showStatus(err.message, true);
 
-    const profile = await liff.getProfile();
-
-    $('user').textContent = profile.displayName;
-
-
-    const r = await api({ action: 'get', code });
-
-    if (!r.ok) return showError(r.error);
-
-    item = r.item;
-
-    render();
-
-  } catch (e) {
-
-    showError('เกิดข้อผิดพลาด: ' + e.message);
+    }
 
   }
 
-}
 
-main();
+  function fillForm(item) {
+
+    document.getElementById("fName").textContent = item.name;
+
+    document.getElementById("fCode").textContent = item.code || "-";
+
+    document.getElementById("fBalance").textContent = item.balance;
+
+    document.getElementById("fMin").textContent = item.minStock === null ? "-" : item.minStock;
+
+    document.getElementById("lowNow").classList.toggle("hidden", !item.low);
+
+    document.getElementById("qty").value = "";
+
+    document.getElementById("formMsg").textContent = "";
+
+    setType(currentType);
+
+  }
+
+
+  function setType(type) {
+
+    currentType = type;
+
+    document.getElementById("tIn").className  = "tbtn" + (type === "in"  ? " active-in"  : "");
+
+    document.getElementById("tOut").className = "tbtn" + (type === "out" ? " active-out" : "");
+
+  }
+
+
+  async function save() {
+
+    if (busy) return;
+
+    const msg = document.getElementById("formMsg");
+
+    const qty = Number(document.getElementById("qty").value);
+
+    if (!(qty > 0)) {
+
+      msg.textContent = "กรุณาใส่จำนวนที่มากกว่า 0";
+
+      return;
+
+    }
+
+
+    busy = true;
+
+    const btn = document.getElementById("saveBtn");
+
+    btn.disabled = true;
+
+    btn.textContent = "กำลังบันทึก...";
+
+    msg.textContent = "";
+
+
+    try {
+
+      const r = await callApi({ action: currentType, code: currentCode, qty: qty, userName: userName });
+
+      showResult(r.item, qty);
+
+    } catch (err) {
+
+      msg.textContent = err.message;
+
+    } finally {
+
+      busy = false;
+
+      btn.disabled = false;
+
+      btn.textContent = "บันทึก";
+
+    }
+
+  }
+
+
+  function showResult(item, qty) {
+
+    document.getElementById("rDetail").textContent =
+
+      (currentType === "in" ? "รับเข้า " : "เบิกออก ") + qty + " โดย " + userName;
+
+    document.getElementById("rName").textContent = item.name;
+
+    document.getElementById("rBalance").textContent = item.balance;
+
+    document.getElementById("rMin").textContent = item.minStock === null ? "-" : item.minStock;
+
+    document.getElementById("lowAfter").classList.toggle("hidden", !item.low);
+
+
+    fillForm(item);
+
+    show("resultView");
+
+    window.scrollTo(0, 0);
+
+  }
+
+
+  function backToForm() {
+
+    show("formView");
+
+  }
+
+
+  async function scan() {
+
+    if (typeof liff === "undefined") return;
+
+    try {
+
+      const result = await liff.scanCodeV2();
+
+      let code = (result.value || "").trim();
+
+      try {
+
+        const url = new URL(code);
+
+        code = url.searchParams.get("code") || code;
+
+      } catch (e) { /* QR เป็นรหัสธรรมดา */ }
+
+      if (code) loadItem(code);
+
+    } catch (err) {
+
+      alert("สแกนไม่สำเร็จ: " + err.message);
+
+    }
+
+  }
+
+
+  // ปิดหน้าจอเฉพาะเมื่อผู้ใช้กดปุ่มเท่านั้น
+
+  function closeApp() {
+
+    if (typeof liff !== "undefined" && liff.isInClient()) {
+
+      liff.closeWindow();
+
+    } else {
+
+      window.close();
+
+      alert("กรุณาปิดแท็บนี้ด้วยตนเอง");
+
+    }
+
+  }
+
+
+  function show(id) {
+
+    ["statusView", "formView", "resultView"].forEach(v =>
+
+      document.getElementById(v).classList.toggle("hidden", v !== id));
+
+  }
+
+
+  function showStatus(text, isError) {
+
+    const el = document.getElementById("statusView");
+
+    el.textContent = text;
+
+    el.style.color = isError ? "#d32f2f" : "";
+
+    show("statusView");
+
+  }
+
+
+  main();
 
 </script>
 
