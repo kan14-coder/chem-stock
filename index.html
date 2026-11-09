@@ -174,13 +174,13 @@
 
 <script>
 
-  // ===== แก้ 2 บรรทัดนี้ (ใช้ค่าเดิมจากไฟล์เก่า) =====
+  // ===== ใส่ LIFF_ID และ GAS_URL ของคุณตรงนี้ =====
 
   const LIFF_ID = "2012261459-EWoSIMD4";
 
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbzGVChyiQvWHNw3gihvEX96LDakfV40k5DWFIDRSCS3E4jijhGN6nUOWnnVBXoP7Gop/exec";
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbzGVChyiQvWHNw3gihvEX96LDakfV40k5DWFIDRSCS3E4jijhGN6nUOWnnVBXoP7Gop/execc";
 
-  // ===================================================
+  // ===============================================
 
 
   const LOW_TEXT = "⚠️ ปริมาณคงเหลือต่ำกว่าขั้นต่ำ ต้องสั่งซื้อ";
@@ -206,7 +206,7 @@
 
     if (typeof liff === "undefined") {
 
-      showStatus("โหลด LINE SDK ไม่สำเร็จ กรุณาเปิดผ่านลิงก์ LIFF (https://liff.line.me/LIFF_ID?code=รหัส) และตรวจอินเทอร์เน็ต", true);
+      showStatus("โหลด LINE SDK ไม่สำเร็จ กรุณาเปิดผ่านลิงก์ LIFF และตรวจอินเทอร์เน็ต", true);
 
       return;
 
@@ -462,8 +462,6 @@
 
   }
 
-
-  // ปิดหน้าจอเฉพาะเมื่อผู้ใช้กดปุ่มเท่านั้น
 
   function closeApp() {
 
