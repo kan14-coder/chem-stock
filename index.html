@@ -53,29 +53,22 @@
     .err { color: #d32f2f; font-size: 18px; margin-top: 10px; text-align: center; }
 
 
-    /* แจ้งเตือนสต็อกต่ำ: สีแดง ตัวใหญ่ ทั้งประโยคขนาดเดียวกัน */
+    /* กล่องสถานที่จัดเก็บ */
+
+    .loc-box { background: #e3f2fd; border: 2px solid #1976d2; border-radius: 10px; padding: 10px 12px; margin: 8px 0 4px; text-align: left; }
+
+    .loc-label { font-size: 15px; color: #1565c0; }
+
+    .loc-value { font-size: 22px; font-weight: bold; color: #0d47a1; }
+
+
+    /* แจ้งเตือนสต็อกต่ำ: สีแดง ตัวใหญ่ */
 
     .low-alert {
 
-      color: #ff0000;
+      color: #ff0000; font-size: 32px; font-weight: bold; text-align: center; line-height: 1.4;
 
-      font-size: 32px;
-
-      font-weight: bold;
-
-      text-align: center;
-
-      line-height: 1.4;
-
-      border: 4px solid #ff0000;
-
-      border-radius: 12px;
-
-      padding: 18px;
-
-      margin-bottom: 12px;
-
-      background: #fff0f0;
+      border: 4px solid #ff0000; border-radius: 12px; padding: 18px; margin-bottom: 12px; background: #fff0f0;
 
     }
 
@@ -100,6 +93,14 @@
     <div class="card">
 
       <h2 id="fName"></h2>
+
+      <div class="loc-box">
+
+        <div class="loc-label">📍 สถานที่จัดเก็บ</div>
+
+        <div class="loc-value" id="fLoc"></div>
+
+      </div>
 
       <div class="row"><span>รหัส</span><b id="fCode"></b></div>
 
@@ -145,6 +146,14 @@
 
       <div id="rDetail" style="font-size:18px;margin-bottom:8px;"></div>
 
+      <div class="loc-box">
+
+        <div class="loc-label">📍 สถานที่จัดเก็บ</div>
+
+        <div class="loc-value" id="rLoc"></div>
+
+      </div>
+
       <div class="row"><span>สารเคมี</span><b id="rName"></b></div>
 
       <div class="row"><span>คงเหลือปัจจุบัน</span><b id="rBalance"></b></div>
@@ -165,16 +174,18 @@
 
 <script>
 
-  // ===== แก้ 2 บรรทัดนี้ =====
+  // ===== แก้ 2 บรรทัดนี้ (ใช้ค่าเดิมจากไฟล์เก่า) =====
 
   const LIFF_ID = "2012261459-EWoSIMD4";
 
   const GAS_URL = "https://script.google.com/macros/s/AKfycbzGVChyiQvWHNw3gihvEX96LDakfV40k5DWFIDRSCS3E4jijhGN6nUOWnnVBXoP7Gop/exec";
 
-  // ==========================
+  // ===================================================
 
 
   const LOW_TEXT = "⚠️ ปริมาณคงเหลือต่ำกว่าขั้นต่ำ ต้องสั่งซื้อ";
+
+  const NO_LOCATION_TEXT = "ยังไม่ระบุ";
 
 
   let currentCode = "";
@@ -298,9 +309,18 @@
   }
 
 
+  function locText(item) {
+
+    return item.location ? item.location : NO_LOCATION_TEXT;
+
+  }
+
+
   function fillForm(item) {
 
     document.getElementById("fName").textContent = item.name;
+
+    document.getElementById("fLoc").textContent = locText(item);
 
     document.getElementById("fCode").textContent = item.code || "-";
 
@@ -386,6 +406,8 @@
     document.getElementById("rDetail").textContent =
 
       (currentType === "in" ? "รับเข้า " : "เบิกออก ") + qty + " โดย " + userName;
+
+    document.getElementById("rLoc").textContent = locText(item);
 
     document.getElementById("rName").textContent = item.name;
 
